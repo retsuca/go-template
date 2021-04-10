@@ -1,10 +1,11 @@
 package controllers
 
 import (
-	"github.com/labstack/echo/v4"
+	"fmt"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 )
 
-func GetTest(c echo.Context) error {
-	return c.JSON(http.StatusOK, "")
+func GetTest(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprint(w, "Test!\n")
 }

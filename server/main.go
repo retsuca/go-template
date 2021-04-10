@@ -1,23 +1,17 @@
 package server
 
 import (
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/julienschmidt/httprouter"
 	"go-template/internal/config"
-	"go-template/pkg/log"
 	"go-template/server/controllers"
-	"go.uber.org/zap"
+	log "go.uber.org/zap"
+	"net/http"
 )
 
 func init() {
-	e := echo.New()
+	router := httprouter.New()
+	router.GET("/test", controllers.GetTest)
 
-	// Middleware
-	e.Use(log.ZapLogger(zap.L()))
-	e.Use(middleware.Recover())
-
-	e.GET("/test", controllers.GetTest)
-
-	e.Logger.Fatal(e.Start(":" + config.Port))
+	log.S().Fatal(http.ListenAndServe(":"+config.Port, router))
 
 }

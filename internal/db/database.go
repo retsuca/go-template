@@ -5,6 +5,7 @@ import (
 	"fmt"
 	_ "github.com/lib/pq"
 	"go-template/internal/config"
+	log "go.uber.org/zap"
 )
 
 var DB *sql.DB
@@ -15,9 +16,8 @@ func init() {
 	db, err := sql.Open("postgres", queryString)
 
 	if err != nil {
-		panic(err)
+		log.S().Panic("error when try to connect DB", err)
 	}
 
 	DB = db
-
 }

@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"go.uber.org/zap"
+	log "go.uber.org/zap"
 	"strings"
 )
 
@@ -14,21 +14,18 @@ var Env = getConf("env", "local")
 var DBUser = getConf("DbUser", "postgres")
 var DBPW = getConf("DBPW", "dbpw")
 
-func getConf(key, defaultvalue string) string {
+func getConf(key, defaultValue string) string {
 
 	viper.AutomaticEnv()
 	key = strings.ToUpper(key)
-	viper.SetDefault(key, defaultvalue)
+	viper.SetDefault(key, defaultValue)
 	return fmt.Sprintf("%v", viper.Get(key))
-
 }
-func init() {
+func Init() {
 
 	viper.SetConfigFile(".env")
-
 	err := viper.ReadInConfig()
 	if err != nil {
-		zap.S().Error("Fatal error config file ", err)
+		log.S().Error("Fatal error config file ", err)
 	}
-
 }
