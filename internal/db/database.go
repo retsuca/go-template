@@ -12,7 +12,7 @@ var DB *sql.DB
 
 func init() {
 
-	queryString := fmt.Sprintf("host=localhost port=5432 user=%s dbname=postgres password=%s sslmode=disable", config.Get("DBUser"), config.Get("DBPW"))
+	queryString := fmt.Sprintf("host=%s port=5432 dbname=%s user=%s  password=%s sslmode=disable", config.Get(config.DB_ADDRESS), config.Get(config.DB_NAME), config.Get(config.DB_USERNAME), config.Get(config.DB_PASSWORD))
 	db, err := sql.Open("postgres", queryString)
 
 	if err != nil {

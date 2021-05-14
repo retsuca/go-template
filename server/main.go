@@ -11,7 +11,6 @@ import (
 func init() {
 	r := mux.NewRouter()
 
-
 	r.HandleFunc("/test", controllers.GetTest)
 
 	log.S().Fatal(http.ListenAndServe(":"+config.Get("port"), r))

@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+const (
+	DB_ADDRESS  = "DB_ADDRESS"
+	DB_NAME     = "DB_NAME"
+	DB_USERNAME = "DB_USERNAME"
+	DB_PASSWORD = "DB_PASSWORD"
+)
+
 func Get(key string) string {
 
 	viper.AutomaticEnv()
@@ -18,7 +25,6 @@ func init() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	viper.WatchConfig()
-
 
 	if err != nil {
 		log.S().Error("Fatal error config file ", err)
