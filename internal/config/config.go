@@ -8,6 +8,8 @@ import (
 )
 
 const (
+	HTTP_PORT   = "HTTP_PORT"
+	HTTP_HOST   = "HTTP_HOST"
 	DB_ADDRESS  = "DB_ADDRESS"
 	DB_NAME     = "DB_NAME"
 	DB_USERNAME = "DB_USERNAME"

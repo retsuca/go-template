@@ -1,11 +1,14 @@
-package log
+package logger
 
 import (
 	"fmt"
+	"time"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"time"
 )
+
+var zapLog *zap.Logger
 
 func init() {
 	logger, err := zap.Config{
@@ -30,5 +33,25 @@ func init() {
 		panic(fmt.Sprintf("cannot initialize sugar logger, error : %s", err.Error()))
 	}
 
-	zap.ReplaceGlobals(logger)
+	zapLog = logger
+}
+
+func Infow(message string, fields ...interface{}) {
+	zapLog.Sugar().Infow(message, fields...)
+}
+
+func Debugw(message string, fields ...interface{}) {
+	zapLog.Sugar().Debugw(message, fields...)
+}
+
+func Errorw(message string, fields ...interface{}) {
+	zapLog.Sugar().Errorw(message, fields...)
+}
+
+func Fatalw(message string, fields ...interface{}) {
+	zapLog.Sugar().Fatalw(message, fields)
+}
+
+func Sync() {
+	zapLog.Sync()
 }

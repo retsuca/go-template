@@ -1,14 +1,13 @@
 package controllers
 
 import (
-	"fmt"
-	"go-template/internal/config"
+	"go-template/pkg/tracer"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
-func GetTest(w http.ResponseWriter, r *http.Request) {
-
-	w.WriteHeader(http.StatusOK)
-	println(config.Get("port"))
-	fmt.Fprint(w, "Test!\n")
+func Hello(c echo.Context) error {
+	tracer.TestTrace(c.Request().Context())
+	return c.String(http.StatusOK, "Hello, World!")
 }
