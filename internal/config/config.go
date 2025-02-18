@@ -2,18 +2,22 @@ package config
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/spf13/viper"
 	log "go.uber.org/zap"
-	"strings"
 )
 
 const (
-	HTTP_PORT   = "HTTP_PORT"
-	HTTP_HOST   = "HTTP_HOST"
-	DB_ADDRESS  = "DB_ADDRESS"
-	DB_NAME     = "DB_NAME"
-	DB_USERNAME = "DB_USERNAME"
-	DB_PASSWORD = "DB_PASSWORD"
+	APP_NAME                    = "APP_NAME"
+	HTTP_PORT                   = "HTTP_PORT"
+	HTTP_HOST                   = "HTTP_HOST"
+	ENV                         = "ENV"
+	DB_ADDRESS                  = "DB_ADDRESS"
+	DB_NAME                     = "DB_NAME"
+	DB_USERNAME                 = "DB_USERNAME"
+	DB_PASSWORD                 = "DB_PASSWORD"
+	OTEL_EXPORTER_OTLP_ENDPOINT = "OTEL_EXPORTER_OTLP_ENDPOINT"
 )
 
 func Get(key string) string {

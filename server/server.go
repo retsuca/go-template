@@ -2,9 +2,11 @@ package server
 
 import (
 	"errors"
+	"go-template/internal/config"
 	logger "go-template/pkg/logger"
 	"go-template/server/controllers"
 	"net/http"
+	"strings"
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
@@ -20,9 +22,12 @@ func CreateHTPPServer(host, port string) {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(otelecho.Middleware("my-server"))
+	e.Use(otelecho.Middleware(""))
 
-	e.Use(echoprometheus.NewMiddleware("gotemplate"))
+	appName := config.Get(config.APP_NAME)
+
+	e.Use(echoprometheus.NewMiddleware(strings.Replace(appName, "-", "_", -1)))
+
 	e.GET("/metrics", echoprometheus.NewHandler())
 
 	e.GET("/", controllers.Hello)
