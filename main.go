@@ -1,15 +1,11 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+
+*/
 package main
 
-import (
-	logger "go-template/pkg/logger"
-
-	"go-template/internal/config"
-	"go-template/server"
-)
+import "go-template/cmd"
 
 func main() {
-
-	defer logger.Sync() // flushes buffer, if any
-
-	server.CreateHTPPServer(config.Get(config.HTTP_HOST), config.Get(config.HTTP_PORT))
+	cmd.Execute()
 }
