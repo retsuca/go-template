@@ -15,8 +15,8 @@ const (
 	ENV                         = "ENV"
 	DB_ADDRESS                  = "DB_ADDRESS"
 	DB_NAME                     = "DB_NAME"
-	DB_USERNAME                 = "DB_USERNAME"
-	DB_PASSWORD                 = "DB_PASSWORD"
+	DB_USER                     = "DB_USER"
+	DB_PW                       = "DB_PW"
 	OTEL_EXPORTER_OTLP_ENDPOINT = "OTEL_EXPORTER_OTLP_ENDPOINT"
 )
 

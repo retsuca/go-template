@@ -38,13 +38,11 @@ func init() {
 	)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
 }
 
 func TestTrace(ctx context.Context) {
 	_, span := tracer.Start(ctx, "getUser", oteltrace.WithAttributes(attribute.String("id", "222")))
 	defer span.End()
-
 }
 
 func createBatchSpanProcessor() sdktrace.SpanProcessor {
@@ -52,7 +50,7 @@ func createBatchSpanProcessor() sdktrace.SpanProcessor {
 	if config.Get(config.ENV) == "local" {
 		exporter, err := stdout.New(stdout.WithPrettyPrint())
 		if err != nil {
-			logger.Fatalw("Fatal error initing Tracer ", err)
+			logger.FatalErr("Fatal error initing Tracer ", err)
 		}
 		bsp := sdktrace.NewBatchSpanProcessor(exporter)
 
@@ -60,13 +58,13 @@ func createBatchSpanProcessor() sdktrace.SpanProcessor {
 	} else {
 		conn, err := initConn()
 		if err != nil {
-			logger.Fatalw("Fatal error initing Tracer ", err)
+			logger.FatalErr("Fatal error initing Tracer ", err)
 		}
 		ctx := context.Background()
 
 		exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
 		if err != nil {
-			logger.Fatalw("Fatal error initing Tracer ", err)
+			logger.FatalErr("Fatal error initing Tracer ", err)
 		}
 		bsp := sdktrace.NewBatchSpanProcessor(exporter)
 

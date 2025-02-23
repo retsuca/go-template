@@ -33,7 +33,7 @@ func CreateHTPPServer(host, port string) {
 	e.GET("/", controllers.Hello)
 
 	if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.Fatalw("Fatal error http server ", err)
+		logger.FatalErr("Fatal error http server ", err)
 	}
 
 }

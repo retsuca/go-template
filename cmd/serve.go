@@ -31,4 +31,4 @@ func serve(ctx context.Context) {
 }
 func init() {
 	rootCmd.AddCommand(serveCmd)
-g}
+}

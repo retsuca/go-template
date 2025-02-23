@@ -36,20 +36,20 @@ func init() {
 	zapLog = logger
 }
 
-func Infow(message string, fields ...interface{}) {
-	zapLog.Sugar().Infow(message, fields...)
+func InfoErr(message string, err error) {
+	zapLog.Sugar().Infow(message, zap.Error(err))
 }
 
-func Debugw(message string, fields ...interface{}) {
-	zapLog.Sugar().Debugw(message, fields...)
+func DebugErr(message string, err error) {
+	zapLog.Sugar().Debugw(message, zap.Error(err))
 }
 
-func Errorw(message string, fields ...interface{}) {
-	zapLog.Sugar().Errorw(message, fields...)
+func ErrorErr(message string, err error) {
+	zapLog.Sugar().Errorw(message, zap.Error(err))
 }
 
-func Fatalw(message string, fields ...interface{}) {
-	zapLog.Sugar().Fatalw(message, fields)
+func FatalErr(message string, err error) {
+	zapLog.Sugar().Fatalw(message, zap.Error(err))
 }
 
 func Sync() {
