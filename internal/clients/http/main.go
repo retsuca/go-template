@@ -20,21 +20,22 @@ type Client struct {
 	c       *http.Client
 }
 
-func init() {
-	client := NewClient(&url.URL{Scheme: "https", Host: "httpbin.org"})
+// func init() {
+// 	client := NewClient(&url.URL{Scheme: "https", Host: "httpbin.org"})
 
-	var test interface{}
-	args := map[string]string{
-		"name": "go-template",
-		"age":  "22",
-	}
-	test, err := client.Do(context.Background(), "GET", "headers", nil, args)
-	fmt.Printf("%+v", err)
-	fmt.Printf("%+v", test)
+// 	var test interface{}
+// 	args := map[string]string{
+// 		"name": "go-template",
+// 		"age":  "22",
+// 	}
+// 	test, err := client.Do(context.Background(), "GET", "get", nil, args)
+// 	fmt.Printf("%+v", err)
+// 	fmt.Printf("%+v", test)
+// 	test, err = client.Do(context.Background(), "POST", "post", args, args)
 
-	test, _ = client.Do(context.Background(), "GET", "/get", nil, args)
+// 	test, _ = client.Do(context.Background(), "GET", "/get", args, args)
 
-}
+// }
 
 func NewClient(baseUrl *url.URL) *Client {
 	c := http.Client{
@@ -47,8 +48,8 @@ func NewClient(baseUrl *url.URL) *Client {
 	}
 
 }
-func (client Client) Do(ctx context.Context, method, path string, body []byte, args map[string]string) (interface{}, error) {
-	request, err := client.newRequest(ctx, "GET", path, body, args)
+func (client Client) Do(ctx context.Context, method, path string, body interface{}, args map[string]string) (interface{}, error) {
+	request, err := client.newRequest(ctx, method, path, body, args)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +68,7 @@ func (client Client) Do(ctx context.Context, method, path string, body []byte, a
 	return result, nil
 }
 
-func (client Client) newRequest(ctx context.Context, method, path string, body []byte, args map[string]string) (*http.Request, error) {
+func (client Client) newRequest(ctx context.Context, method, path string, body interface{}, args map[string]string) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := client.BaseURL.ResolveReference(rel)
 	var buf io.ReadWriter
