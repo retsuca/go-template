@@ -1,12 +1,16 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
 	"go-template/server/controllers"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
@@ -32,8 +36,19 @@ func CreateHTPPServer(host, port string) {
 
 	e.GET("/", controllers.Hello)
 
-	if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		logger.FatalErr("Fatal error http server ", err)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+	go func() {
+
+		if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.FatalErr("Fatal error http server ", err)
+		}
+	}()
+	<-ctx.Done()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := e.Shutdown(ctx); err != nil {
+		e.Logger.Fatal(err)
 	}
 
 }
