@@ -48,7 +48,7 @@ func ErrorErr(message string, err error) {
 	zapLog.Sugar().Errorw(message, zap.Error(err))
 }
 
-func FatalErr(message string, err error) {
+func FatalErr(message string, err error) { 
 	zapLog.Sugar().Fatalw(message, zap.Error(err))
 }
 

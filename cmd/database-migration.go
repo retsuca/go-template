@@ -4,7 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"go-template/internal/db"
+	"go-template/internal/clients/db"
 	"go-template/pkg/logger"
 
 	"github.com/golang-migrate/migrate/v4"
