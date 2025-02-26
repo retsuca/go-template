@@ -22,7 +22,7 @@ type Client struct {
 // func init() {
 // 	client := NewClient(&url.URL{Scheme: "https", Host: "httpbin.org"})
 
-// 	var test interface{}
+// 	var test any
 // 	args := map[string]string{
 // 		"name": "go-template",
 // 		"age":  "22",
@@ -47,7 +47,7 @@ func NewClient(baseUrl *url.URL) *Client {
 	}
 
 }
-func (client Client) Do(ctx context.Context, method, path string, body interface{}, args map[string]string) (interface{}, error) {
+func (client Client) Do(ctx context.Context, method, path string, body any, args map[string]string) ([]byte, error) {
 	request, err := client.newRequest(ctx, method, path, body, args)
 	if err != nil {
 		return nil, err
@@ -59,15 +59,17 @@ func (client Client) Do(ctx context.Context, method, path string, body interface
 	}
 
 	defer resp.Body.Close()
-	var result interface{}
-	err = json.NewDecoder(resp.Body).Decode(&result)
+
+	respBody, err := io.ReadAll(resp.Body)
+
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+
+	return respBody, nil
 }
 
-func (client Client) newRequest(ctx context.Context, method, path string, body interface{}, args map[string]string) (*http.Request, error) {
+func (client Client) newRequest(ctx context.Context, method, path string, body any, args map[string]string) (*http.Request, error) {
 	rel := &url.URL{Path: path}
 	u := client.BaseURL.ResolveReference(rel)
 	var buf io.ReadWriter
