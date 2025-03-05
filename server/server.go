@@ -5,12 +5,15 @@ import (
 	"errors"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
-	"go-template/server/controllers"
+	"go-template/server/handler"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
 	"time"
+
+	httpclient "go-template/internal/clients/http"
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
@@ -34,7 +37,11 @@ func CreateHTPPServer(host, port string) {
 
 	e.GET("/metrics", echoprometheus.NewHandler())
 
-	e.GET("/", controllers.Hello)
+	client := httpclient.NewClient(&url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"})
+
+	h := handler.NewHandler(client)
+
+	e.GET("/", h.Hello)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()

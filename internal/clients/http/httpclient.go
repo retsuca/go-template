@@ -19,23 +19,6 @@ type Client struct {
 	c       *http.Client
 }
 
-// func init() {
-// 	client := NewClient(&url.URL{Scheme: "https", Host: "httpbin.org"})
-
-// 	var test any
-// 	args := map[string]string{
-// 		"name": "go-template",
-// 		"age":  "22",
-// 	}
-// 	test, err := client.Do(context.Background(), "GET", "get", nil, args)
-// 	fmt.Printf("%+v", err)
-// 	fmt.Printf("%+v", test)
-// 	test, err = client.Do(context.Background(), "POST", "post", args, args)
-
-// 	test, _ = client.Do(context.Background(), "GET", "/get", args, args)
-
-// }
-
 func NewClient(baseUrl *url.URL) *Client {
 	c := http.Client{
 		Transport: otelhttp.NewTransport(http.DefaultTransport),
