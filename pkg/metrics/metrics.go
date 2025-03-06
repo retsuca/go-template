@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+	OpsProcessed = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "myapp_processed_ops_total",
 		// Subsystem: "Subsystem",
 		// Namespace: "Namespace",
