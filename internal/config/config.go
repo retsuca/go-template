@@ -8,6 +8,7 @@ import (
 	log "go.uber.org/zap"
 )
 
+//nolint:revive,stylecheck // These are env variables
 const (
 	APP_NAME                    = "APP_NAME"
 	HTTP_PORT                   = "HTTP_PORT"
@@ -21,13 +22,14 @@ const (
 )
 
 func Get(key string) string {
-
 	viper.AutomaticEnv()
+
 	key = strings.ToUpper(key)
+
 	return fmt.Sprintf("%v", viper.Get(key))
 }
-func init() {
 
+func init() {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	viper.WatchConfig()
@@ -35,5 +37,4 @@ func init() {
 	if err != nil {
 		log.S().Error("Fatal error config file ", err)
 	}
-	return
 }

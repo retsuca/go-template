@@ -1,7 +1,6 @@
 package handler
 
 import (
-	httpclient "go-template/internal/clients/http"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -9,6 +8,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+
+	httpclient "go-template/internal/clients/http"
 )
 
 func TestHandler_Hello(t *testing.T) {
@@ -21,7 +22,7 @@ func TestHandler_Hello(t *testing.T) {
 	client := httpclient.NewClient(&url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"})
 
 	h := Handler{
-		HttpClient: client,
+		HTTPClient: client,
 	}
 
 	// Assertions

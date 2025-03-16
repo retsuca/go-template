@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"time"
 
 	"go.uber.org/zap"
@@ -28,9 +27,8 @@ func init() {
 			StacktraceKey: "stack-trace",
 		},
 	}.Build()
-
 	if err != nil {
-		panic(fmt.Sprintf("cannot initialize sugar logger, error : %s", err.Error()))
+		panic("cannot initialize sugar logger, error : " + err.Error())
 	}
 
 	zapLog = logger
@@ -48,10 +46,10 @@ func ErrorErr(message string, err error) {
 	zapLog.Sugar().Errorw(message, zap.Error(err))
 }
 
-func FatalErr(message string, err error) { 
+func FatalErr(message string, err error) {
 	zapLog.Sugar().Fatalw(message, zap.Error(err))
 }
 
 func Sync() {
-	zapLog.Sync()
+	_ = zapLog.Sync()
 }

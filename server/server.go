@@ -3,9 +3,6 @@ package server
 import (
 	"context"
 	"errors"
-	"go-template/internal/config"
-	logger "go-template/pkg/logger"
-	"go-template/server/handler"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,18 +10,18 @@ import (
 	"strings"
 	"time"
 
-	httpclient "go-template/internal/clients/http"
-
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
-
 	"github.com/labstack/echo-contrib/echoprometheus"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+
+	httpclient "go-template/internal/clients/http"
+	"go-template/internal/config"
+	logger "go-template/pkg/logger"
+	"go-template/server/handler"
 )
 
-func CreateHTPPServer(host, port string) {
-
+func CreateHTPPServer(ctx context.Context, host, port string) {
 	e := echo.New()
 
 	e.Use(middleware.Logger())
@@ -33,7 +30,7 @@ func CreateHTPPServer(host, port string) {
 
 	appName := config.Get(config.APP_NAME)
 
-	e.Use(echoprometheus.NewMiddleware(strings.Replace(appName, "-", "_", -1)))
+	e.Use(echoprometheus.NewMiddleware(strings.ReplaceAll(appName, "-", "_")))
 
 	e.GET("/metrics", echoprometheus.NewHandler())
 
@@ -43,19 +40,22 @@ func CreateHTPPServer(host, port string) {
 
 	e.GET("/", h.Hello)
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
-	go func() {
 
+	go func() {
 		if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.FatalErr("Fatal error http server ", err)
 		}
 	}()
+
 	<-ctx.Done()
+
+	//nolint:mnd //because
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
-
 }

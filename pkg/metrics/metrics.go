@@ -1,3 +1,4 @@
+//nolint:all // placeholder
 package metrics
 
 import (
@@ -35,6 +36,7 @@ var (
 		})
 )
 
+//nolint:all // placeholder
 // func init() {
 // 	opsProcessed.Inc()
 // 	gauge.Set(1)

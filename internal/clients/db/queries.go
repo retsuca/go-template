@@ -1,3 +1,3 @@
 package db
 
-const GET_ALL_QUERY = "SELECT * FROM all"
+const GetAllQuery = "SELECT * FROM all"

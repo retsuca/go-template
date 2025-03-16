@@ -9,11 +9,11 @@ type Client interface {
 }
 
 type Handler struct {
-	HttpClient Client
+	HTTPClient Client
 }
 
 func NewHandler(client Client) *Handler {
 	return &Handler{
-		HttpClient: client,
+		HTTPClient: client,
 	}
 }

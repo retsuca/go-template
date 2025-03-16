@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewClient(t *testing.T) {
@@ -23,6 +24,7 @@ func TestNewClient(t *testing.T) {
 	assert.Equal(t, 10*time.Second, client.c.Timeout)
 }
 
+//nolint:funlen // Because i didn't refactor
 func TestClient_Do(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -92,7 +94,7 @@ func TestClient_Do(t *testing.T) {
 			name:           "invalid json body",
 			method:         http.MethodPost,
 			path:           "/api/create",
-			body:           make(chan int), //invalid json
+			body:           make(chan int), // invalid json
 			serverResponse: "",
 			serverStatus:   http.StatusOK,
 			expectedBody:   "",
@@ -105,9 +107,11 @@ func TestClient_Do(t *testing.T) {
 			// Setup a mock server
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tc.serverStatus)
+
 				if tc.body != nil && r.Method == http.MethodPost {
 					bodyBytes, _ := io.ReadAll(r.Body)
 					assert.NotEmpty(t, bodyBytes)
+
 					contentType := r.Header.Get("Content-Type")
 					assert.Equal(t, "application/json", contentType)
 
@@ -116,6 +120,7 @@ func TestClient_Do(t *testing.T) {
 						assert.Contains(t, r.URL.RawQuery, key+"="+value)
 					}
 				}
+
 				if tc.args != nil && r.Method == http.MethodGet {
 					for key, value := range tc.args {
 						assert.Contains(t, r.URL.RawQuery, key+"="+value)
@@ -126,7 +131,6 @@ func TestClient_Do(t *testing.T) {
 					_, err := w.Write([]byte(tc.serverResponse))
 					assert.NoError(t, err)
 				}
-
 			}))
 			defer server.Close()
 
@@ -138,7 +142,7 @@ func TestClient_Do(t *testing.T) {
 			if tc.expectedError {
 				assert.Error(t, err)
 			} else {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 				assert.Equal(t, tc.expectedBody, string(body))
 			}
 		})
@@ -151,7 +155,7 @@ func TestClient_newRequest(t *testing.T) {
 
 	t.Run("GET request with no body or args", func(t *testing.T) {
 		req, err := client.newRequest(context.Background(), http.MethodGet, "/api/data", nil, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, http.MethodGet, req.Method)
 		assert.Equal(t, "https://example.com/api/data", req.URL.String())
 		assert.Nil(t, req.Body)
@@ -160,7 +164,7 @@ func TestClient_newRequest(t *testing.T) {
 	t.Run("POST request with JSON body", func(t *testing.T) {
 		body := map[string]string{"key": "value"}
 		req, err := client.newRequest(context.Background(), http.MethodPost, "/api/create", body, nil)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, http.MethodPost, req.Method)
 		assert.Equal(t, "https://example.com/api/create", req.URL.String())
 		assert.NotNil(t, req.Body)
@@ -168,14 +172,14 @@ func TestClient_newRequest(t *testing.T) {
 
 		var reqBody map[string]string
 		err = json.NewDecoder(req.Body).Decode(&reqBody)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, body, reqBody)
 	})
 
 	t.Run("GET request with query arguments", func(t *testing.T) {
 		args := map[string]string{"id": "123", "name": "test"}
 		req, err := client.newRequest(context.Background(), http.MethodGet, "/api/items", nil, args)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, http.MethodGet, req.Method)
 		assert.Equal(t, "https://example.com/api/items?id=123&name=test", req.URL.String())
 		assert.Nil(t, req.Body)
