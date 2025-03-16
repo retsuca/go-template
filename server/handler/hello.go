@@ -9,6 +9,10 @@ import (
 	"go-template/pkg/tracer"
 )
 
+// @Summary      hello world
+// @Description  shows hello world
+// @Tags         accounts
+// @Router       / [get]
 func (h *Handler) Hello(c echo.Context) error {
 	metrics.OpsProcessed.Inc()
 	tracer.TestTrace(c.Request().Context())

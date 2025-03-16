@@ -1,0 +1,11 @@
+info:
+  contact: {}
+paths:
+  /:
+    get:
+      description: shows hello world
+      responses: {}
+      summary: hello world
+      tags:
+      - accounts
+swagger: "2.0"

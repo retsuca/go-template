@@ -10,9 +10,12 @@ import (
 	"strings"
 	"time"
 
+	_ "go-template/docs"
+
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger" // echo-swagger middleware
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 
 	httpclient "go-template/internal/clients/http"
@@ -37,6 +40,8 @@ func CreateHTPPServer(ctx context.Context, host, port string) {
 	client := httpclient.NewClient(&url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"})
 
 	h := handler.NewHandler(client)
+
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/", h.Hello)
 

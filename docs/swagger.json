@@ -1,0 +1,18 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "description": "shows hello world",
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "hello world",
+                "responses": {}
+            }
+        }
+    }
+}
