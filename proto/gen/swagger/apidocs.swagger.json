@@ -1,0 +1,102 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "helloservice/v1/name/create.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "go_template.helloservice.v1.name.GreeterService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/go_template.helloservice.v1.name.GreeterService/SayHello": {
+      "post": {
+        "summary": "Sends a greeting",
+        "operationId": "GreeterService_SayHello",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/nameSayHelloResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "The request message containing the user's name.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/nameSayHelloRequest"
+            }
+          }
+        ],
+        "tags": [
+          "go_template.helloservice.v1.name.GreeterService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "nameSayHelloRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "The request message containing the user's name."
+    },
+    "nameSayHelloResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      },
+      "title": "The response message containing the greetings"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

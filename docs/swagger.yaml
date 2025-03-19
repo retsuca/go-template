@@ -8,4 +8,17 @@ paths:
       summary: hello world
       tags:
       - accounts
+  /withparam:
+    get:
+      description: shows hello world
+      parameters:
+      - description: name
+        in: query
+        name: name
+        required: true
+        type: string
+      responses: {}
+      summary: hello world
+      tags:
+      - accounts
 swagger: "2.0"

@@ -11,8 +11,9 @@ import (
 //nolint:revive,stylecheck // These are env variables
 const (
 	APP_NAME                    = "APP_NAME"
+	HOST                        = "HOST"
 	HTTP_PORT                   = "HTTP_PORT"
-	HTTP_HOST                   = "HTTP_HOST"
+	GRPC_PORT                   = "GRPC_PORT"
 	ENV                         = "ENV"
 	DB_ADDRESS                  = "DB_ADDRESS"
 	DB_NAME                     = "DB_NAME"

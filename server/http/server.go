@@ -21,7 +21,8 @@ import (
 	httpclient "go-template/internal/clients/http"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
-	"go-template/server/handler"
+	"go-template/server/http/handler"
+
 )
 
 func CreateHTPPServer(ctx context.Context, host, port string) {
@@ -44,6 +45,7 @@ func CreateHTPPServer(ctx context.Context, host, port string) {
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.GET("/", h.Hello)
+	e.GET("/withparam", h.HelloWithParam)
 
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()

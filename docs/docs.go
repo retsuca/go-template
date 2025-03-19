@@ -24,6 +24,25 @@ const docTemplate = `{
                 "summary": "hello world",
                 "responses": {}
             }
+        },
+        "/withparam": {
+            "get": {
+                "description": "shows hello world",
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "hello world",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
         }
     }
 }`

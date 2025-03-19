@@ -10,8 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}",
-      "args": ["serve"],
-      "console": "integratedTerminal",
+      "args": ["serve", "grpc"],
     }
   ]
 }
