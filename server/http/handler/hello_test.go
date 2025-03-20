@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 
-	httpclient "go-template/internal/clients/http"
+	httpclient "go-template/internal/clients/httpClient"
 )
 
 func TestHandler_Hello(t *testing.T) {
@@ -19,7 +19,11 @@ func TestHandler_Hello(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	client := httpclient.NewClient(&url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"})
+	client := httpclient.NewClient(httpclient.ClientOptions{
+		BaseURL: &url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"},
+		// Sock5Proxy:         config.Get(config.SOCKS5_PROXY),
+		InsecureSkipVerify: false,
+	})
 
 	h := Handler{
 		HTTPClient: client,

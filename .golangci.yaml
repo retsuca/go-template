@@ -72,7 +72,6 @@ linters:
     - usestdlibvars
     - usetesting
     - whitespace
-    - wsl
 
 issues:
   exclude:

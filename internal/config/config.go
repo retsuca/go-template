@@ -14,6 +14,8 @@ const (
 	HOST                        = "HOST"
 	HTTP_PORT                   = "HTTP_PORT"
 	GRPC_PORT                   = "GRPC_PORT"
+	SOCKS5_PROXY                = "SOCKS5_PROXY"
+	LOG_LEVEL                   = "LOG_LEVEL"
 	ENV                         = "ENV"
 	DB_ADDRESS                  = "DB_ADDRESS"
 	DB_NAME                     = "DB_NAME"

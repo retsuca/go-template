@@ -17,12 +17,12 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger" // echo-swagger middleware
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	"go.uber.org/zap"
 
-	httpclient "go-template/internal/clients/http"
+	httpclient "go-template/internal/clients/httpClient"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
 	"go-template/server/http/handler"
-
 )
 
 func CreateHTPPServer(ctx context.Context, host, port string) {
@@ -38,7 +38,11 @@ func CreateHTPPServer(ctx context.Context, host, port string) {
 
 	e.GET("/metrics", echoprometheus.NewHandler())
 
-	client := httpclient.NewClient(&url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"})
+	client := httpclient.NewClient(httpclient.ClientOptions{
+		BaseURL: &url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"},
+		// Sock5Proxy:         config.Get(config.SOCKS5_PROXY),
+		InsecureSkipVerify: false,
+	})
 
 	h := handler.NewHandler(client)
 
@@ -52,7 +56,7 @@ func CreateHTPPServer(ctx context.Context, host, port string) {
 
 	go func() {
 		if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.FatalErr("Fatal error http server ", err)
+			logger.Fatal("Fatal error http server", zap.Error(err))
 		}
 	}()
 

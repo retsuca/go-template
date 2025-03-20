@@ -13,5 +13,6 @@ type HelloServer struct {
 
 func (s *HelloServer) SayHello(_ context.Context, in *pbName.SayHelloRequest) (*pbName.SayHelloResponse, error) {
 	log.Printf("Received: %v", in.GetName())
+
 	return &pbName.SayHelloResponse{Message: "Hello " + in.GetName()}, nil
 }

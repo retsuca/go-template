@@ -5,7 +5,7 @@ package main
 
 import (
 	"go-template/cmd"
-	_ "go-template/internal/clients/http"
+	_ "go-template/internal/clients/httpClient"
 )
 
 func main() {

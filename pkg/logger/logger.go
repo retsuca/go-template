@@ -1,55 +1,106 @@
 package logger
 
 import (
-	"time"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var zapLog *zap.Logger
+// Config holds the configuration for the logger
+type Config struct {
+	Level       string   // Debug, Info, Warn, Error, Fatal
+	Encoding    string   // json or console
+	OutputPaths []string // list of URLs or file paths
+}
 
-func init() {
-	logger, err := zap.Config{
-		Level:       zap.NewAtomicLevelAt(zapcore.DebugLevel),
+// DefaultConfig returns the default logger configuration
+func DefaultConfig() Config {
+	return Config{
+		Level:       "debug",
 		Encoding:    "json",
 		OutputPaths: []string{"stdout"},
-		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:  "message",
-			LevelKey:    "level",
-			EncodeLevel: zapcore.CapitalLevelEncoder,
-			TimeKey:     "time",
-			EncodeTime: func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-				enc.AppendString(t.Format("2006-01-02 15:04:05,000"))
-			},
-			CallerKey:     "source",
-			EncodeCaller:  zapcore.ShortCallerEncoder,
-			StacktraceKey: "stack-trace",
-		},
-	}.Build()
+	}
+}
+
+var zapLog *zap.Logger
+
+// Initialize sets up the logger with the given configuration
+func Initialize(cfg Config) error {
+	var level zapcore.Level
+	err := level.UnmarshalText([]byte(cfg.Level))
 	if err != nil {
-		panic("cannot initialize sugar logger, error : " + err.Error())
+		return err
+	}
+
+	logConfig := zap.Config{
+		Level:       zap.NewAtomicLevelAt(level),
+		Encoding:    cfg.Encoding,
+		OutputPaths: cfg.OutputPaths,
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey:     "message",
+			LevelKey:       "level",
+			EncodeLevel:    zapcore.CapitalLevelEncoder,
+			TimeKey:        "time",
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
+			CallerKey:      "source",
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+			StacktraceKey:  "stack-trace",
+			EncodeDuration: zapcore.StringDurationEncoder,
+		},
+	}
+
+	logger, err := logConfig.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		return err
 	}
 
 	zapLog = logger
+
+	return nil
 }
 
-func InfoErr(message string, err error) {
-	zapLog.Sugar().Infow(message, zap.Error(err))
+// init initializes the logger with default configuration
+func init() {
+	if err := Initialize(DefaultConfig()); err != nil {
+		panic("failed to initialize logger: " + err.Error())
+	}
 }
 
-func DebugErr(message string, err error) {
-	zapLog.Sugar().Debugw(message, zap.Error(err))
+// Info logs a message at info level
+func Info(msg string, fields ...zap.Field) {
+	zapLog.Info(msg, fields...)
 }
 
-func ErrorErr(message string, err error) {
-	zapLog.Sugar().Errorw(message, zap.Error(err))
+// Debug logs a message at debug level
+func Debug(msg string, fields ...zap.Field) {
+	zapLog.Debug(msg, fields...)
 }
 
-func FatalErr(message string, err error) {
-	zapLog.Sugar().Fatalw(message, zap.Error(err))
+// Warn logs a message at warn level
+func Warn(msg string, fields ...zap.Field) {
+	zapLog.Warn(msg, fields...)
 }
 
-func Sync() {
-	_ = zapLog.Sync()
+// Error logs a message at error level
+func Error(msg string, fields ...zap.Field) {
+	zapLog.Error(msg, fields...)
+}
+
+// Fatal logs a message at fatal level and then calls os.Exit(1)
+func Fatal(msg string, fields ...zap.Field) {
+	zapLog.Fatal(msg, fields...)
+}
+
+// With creates a child logger and adds structured context to it
+func With(fields ...zap.Field) *zap.Logger {
+	return zapLog.With(fields...)
+}
+
+// Sync flushes any buffered log entries
+func Sync() error {
+	return zapLog.Sync()
+}
+
+// GetLogger returns the underlying zap logger instance
+func GetLogger() *zap.Logger {
+	return zapLog
 }

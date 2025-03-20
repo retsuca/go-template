@@ -48,7 +48,7 @@ var serveGRPCCmd = &cobra.Command{
 
 func serveGRPC(ctx context.Context) {
 	defer logger.Sync() // flushes buffer, if any
-	serverGRPC.CreateGRPCServer(ctx, config.Get(config.HOST), config.Get(config.GRPC_PORT),config.Get(config.HTTP_PORT))
+	serverGRPC.CreateGRPCServer(ctx, config.Get(config.HOST), config.Get(config.GRPC_PORT), config.Get(config.HTTP_PORT))
 }
 
 func init() {
