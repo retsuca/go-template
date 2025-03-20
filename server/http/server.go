@@ -12,6 +12,7 @@ import (
 
 	_ "go-template/docs"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -22,51 +23,119 @@ import (
 	httpclient "go-template/internal/clients/httpClient"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
+	"go-template/pkg/tracer"
 	"go-template/server/http/handler"
 )
 
-func CreateHTPPServer(ctx context.Context, host, port string) {
+// CreateHTTPServer initializes and starts an HTTP server with the given configuration.
+// It sets up middleware, routes, and handles graceful shutdown.
+func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.ServeMux) {
+	// Initialize tracer
+	tp, err := tracer.NewTracer()
+	if err != nil {
+		logger.Fatal("Failed to initialize tracer", zap.Error(err))
+	}
+	defer func() {
+		if err := tp.Shutdown(ctx); err != nil {
+			logger.Error("Error shutting down tracer provider", zap.Error(err))
+		}
+	}()
+
 	e := echo.New()
+	e.HideBanner = true
+	e.HidePort = true
+
+	// Setup middleware
+	setupMiddleware(e)
+
+	// Setup routes
+	setupRoutes(e, gwMux)
+
+	// Setup handlers
+	setupHandlers(e)
+
+	// Start server
+	startServer(ctx, e, host, port)
+}
+
+// setupMiddleware configures all middleware for the server
+func setupMiddleware(e *echo.Echo) {
+	appName := config.Get(config.APP_NAME)
+	metricName := strings.ReplaceAll(appName, "-", "_")
+
+	// Add tracing middleware first to ensure all requests are traced
+	e.Use(otelecho.Middleware(appName,
+		otelecho.WithSkipper(func(c echo.Context) bool {
+			return c.Path() == "/metrics" || c.Path() == "/health"
+		}),
+	))
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(otelecho.Middleware(""))
+	e.Use(echoprometheus.NewMiddleware(metricName))
 
-	appName := config.Get(config.APP_NAME)
+	// Add request ID middleware
+	e.Use(middleware.RequestID())
+}
 
-	e.Use(echoprometheus.NewMiddleware(strings.ReplaceAll(appName, "-", "_")))
-
+// setupRoutes configures all routes for the server
+func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
 	e.GET("/metrics", echoprometheus.NewHandler())
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
+	e.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]string{"status": "healthy"})
+	})
 
+	// Mount gRPC-Gateway endpoints if provided
+	if gwMux != nil {
+		e.Any("/v1/*", echo.WrapHandler(gwMux))
+	}
+}
+
+// setupHandlers initializes and configures all handlers
+func setupHandlers(e *echo.Echo) {
 	client := httpclient.NewClient(httpclient.ClientOptions{
-		BaseURL: &url.URL{Scheme: "https", Host: "hacker-news.firebaseio.com", Path: "v0/"},
-		// Sock5Proxy:         config.Get(config.SOCKS5_PROXY),
+		BaseURL: &url.URL{
+			Scheme: "https",
+			Host:   "hacker-news.firebaseio.com",
+			Path:   "v0/",
+		},
 		InsecureSkipVerify: false,
 	})
 
 	h := handler.NewHandler(client)
 
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
 	e.GET("/", h.Hello)
 	e.GET("/withparam", h.HelloWithParam)
+}
 
+// startServer starts the HTTP server and handles graceful shutdown
+func startServer(ctx context.Context, e *echo.Echo, host, port string) {
+	// Create server context with cancellation
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
+	// Start server in a goroutine
 	go func() {
-		if err := e.Start(host + ":" + port); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Fatal("Fatal error http server", zap.Error(err))
+		addr := host + ":" + port
+		logger.Info("Starting HTTP server", zap.String("address", addr))
+
+		if err := e.Start(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("Fatal error in HTTP server", zap.Error(err))
 		}
 	}()
 
+	// Wait for interrupt signal
 	<-ctx.Done()
+	logger.Info("Shutting down HTTP server...")
 
-	//nolint:mnd //because
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Give the server 10 seconds to complete pending requests
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := e.Shutdown(ctx); err != nil {
-		e.Logger.Fatal(err)
+	if err := e.Shutdown(shutdownCtx); err != nil {
+		logger.Error("Error during server shutdown", zap.Error(err))
 	}
+
+	logger.Info("HTTP server shutdown complete")
 }

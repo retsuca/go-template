@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"go-template/pkg/metrics"
-	"go-template/pkg/tracer"
 )
 
 // @Summary      hello world
@@ -15,7 +14,7 @@ import (
 // @Router       / [get]
 func (h *Handler) Hello(c echo.Context) error {
 	metrics.OpsProcessed.Inc()
-	tracer.TestTrace(c.Request().Context())
+	// tracer.TestTrace(c.Request().Context())
 
 	return c.String(http.StatusOK, "Hello, World!")
 }
@@ -29,7 +28,7 @@ func (h *Handler) HelloWithParam(c echo.Context) error {
 	name := c.QueryParam("name")
 
 	metrics.OpsProcessed.Inc()
-	tracer.TestTrace(c.Request().Context())
+	// TestTrace(c.Request().Context())
 
 	return c.String(http.StatusOK, name)
 }

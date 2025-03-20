@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/lib/pq" // Register postgres driver
+	"go.uber.org/zap"
 
 	"go-template/internal/config"
 	"go-template/pkg/logger"
@@ -17,7 +18,7 @@ func init() {
 
 	db, err := sql.Open("postgres", dataSource)
 	if err != nil {
-		logger.FatalErr("error when try to connect DB", err)
+		logger.Fatal("Failed to initialize database", zap.Error(err))
 	}
 
 	DB = db
