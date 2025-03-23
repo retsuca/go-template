@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -30,9 +30,6 @@ type TracerProvider struct {
 // NewTracer initializes a new tracer provider with the given service name
 func NewTracer() (*TracerProvider, error) {
 	serviceName := config.Get(config.APP_NAME)
-	if serviceName == "" {
-		serviceName = "go-template"
-	}
 
 	// Create resource with service information
 	res, err := resource.Merge(

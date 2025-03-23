@@ -54,7 +54,6 @@ linters:
     - mnd
     - nakedret
     - noctx
-    - nlreturn
     - nolintlint
     - perfsprint
     - protogetter

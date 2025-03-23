@@ -11,12 +11,14 @@ import (
 	"time"
 
 	_ "go-template/docs"
+	swagger "go-template/proto/gen/swagger"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	echoSwagger "github.com/swaggo/echo-swagger" // echo-swagger middleware
+	"github.com/labstack/echo/v4/middleware" // echo-swagger middleware
+	echoSwagger "github.com/swaggo/echo-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/zap"
 
@@ -48,8 +50,19 @@ func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.Ser
 	// Setup middleware
 	setupMiddleware(e)
 
-	// Setup routes
-	setupRoutes(e, gwMux)
+	// Create handler instance
+	client := httpclient.NewClient(httpclient.ClientOptions{
+		BaseURL: &url.URL{
+			Scheme: "https",
+			Host:   "hacker-news.firebaseio.com",
+			Path:   "v0/",
+		},
+		InsecureSkipVerify: false,
+	})
+	h := handler.NewHandler(client)
+
+	// Setup routes with handler instance
+	setupRoutes(e, gwMux, h)
 
 	// Setup handlers
 	setupHandlers(e)
@@ -79,17 +92,30 @@ func setupMiddleware(e *echo.Echo) {
 }
 
 // setupRoutes configures all routes for the server
-func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
+func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux, h *handler.Handler) {
 	e.GET("/metrics", echoprometheus.NewHandler())
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	// Configure Swagger UI only when gRPC gateway is enabled
+	if gwMux != nil {
+		// Serve gRPC-Gateway Swagger documentation
+		e.GET("/swagger/swagger.json", func(c echo.Context) error {
+			return c.JSONBlob(http.StatusOK, swagger.ApidocsSwaggerJson)
+		})
+
+		e.GET("/swagger/*", echo.WrapHandler(httpSwagger.Handler(
+			httpSwagger.URL("/swagger/swagger.json"), // The url pointing to API definition
+			httpSwagger.DeepLinking(true),
+			httpSwagger.DocExpansion("none"),
+			httpSwagger.DomID("swagger-ui"),
+		)))
+		e.Any("/*", echo.WrapHandler(gwMux))
+	} else {
+		e.GET("/swagger/*", echoSwagger.WrapHandler)
+	}
+
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "healthy"})
 	})
-
-	// Mount gRPC-Gateway endpoints if provided
-	if gwMux != nil {
-		e.Any("/v1/*", echo.WrapHandler(gwMux))
-	}
 }
 
 // setupHandlers initializes and configures all handlers

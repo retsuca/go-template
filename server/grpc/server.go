@@ -13,13 +13,14 @@ import (
 	_ "go-template/docs"
 	"go-template/pkg/logger"
 	"go-template/pkg/tracer"
+	"go-template/server/grpc/handler"
 	httpServer "go-template/server/http"
 
 	pbName "go-template/proto/gen/go/helloservice/v1/name"
-	"go-template/server/grpc/handler"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -46,12 +47,9 @@ type Config struct {
 // NewServer creates a new Server instance with the given configuration
 func NewServer(cfg *Config) *Server {
 	if cfg == nil {
-		cfg = &Config{
-			Host:     "localhost",
-			GRPCPort: "50051",
-			HTTPPort: "8080",
-		}
+		return nil
 	}
+
 	return &Server{
 		config:       cfg,
 		shutdownChan: make(chan os.Signal, 1),
@@ -120,10 +118,14 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) setupGRPCGateway(ctx context.Context) (*runtime.ServeMux, error) {
 	gwmux := runtime.NewServeMux()
 
+	// Use new client instrumentation with propagation
+	otelHandler := otelgrpc.NewClientHandler(
+		otelgrpc.WithTracerProvider(otel.GetTracerProvider()),
+		otelgrpc.WithPropagators(otel.GetTextMapPropagator()),
+	)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
-		grpc.WithStreamInterceptor(otelgrpc.StreamClientInterceptor()),
+		grpc.WithStatsHandler(otelHandler),
 	}
 	grpcServerEndpoint := net.JoinHostPort(s.config.Host, s.config.GRPCPort)
 
@@ -137,10 +139,10 @@ func (s *Server) setupGRPCGateway(ctx context.Context) (*runtime.ServeMux, error
 
 // initGRPCServer initializes the gRPC server and registers services
 func (s *Server) initGRPCServer() error {
-	// Create gRPC server with tracing interceptors
+	// Create gRPC server with tracing instrumentation
+	otelHandler := otelgrpc.NewServerHandler()
 	s.grpcServer = grpc.NewServer(
-		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+		grpc.StatsHandler(otelHandler),
 	)
 
 	// Register services

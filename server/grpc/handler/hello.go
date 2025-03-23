@@ -2,9 +2,11 @@ package handler
 
 import (
 	"context"
-	"log"
 
+	"go-template/pkg/logger"
 	pbName "go-template/proto/gen/go/helloservice/v1/name"
+
+	"go.uber.org/zap"
 )
 
 type HelloServer struct {
@@ -12,7 +14,7 @@ type HelloServer struct {
 }
 
 func (s *HelloServer) SayHello(_ context.Context, in *pbName.SayHelloRequest) (*pbName.SayHelloResponse, error) {
-	log.Printf("Received: %v", in.GetName())
+	logger.Info("Received: ", zap.String("name", in.GetName()))
 
 	return &pbName.SayHelloResponse{Message: "Hello " + in.GetName()}, nil
 }
