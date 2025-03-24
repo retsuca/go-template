@@ -25,9 +25,14 @@ import (
 	httpclient "go-template/internal/clients/httpClient"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
+	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
 	"go-template/server/http/handler"
 )
+
+type Server struct {
+	Metrics *handler.Metrics
+}
 
 // CreateHTTPServer initializes and starts an HTTP server with the given configuration.
 // It sets up middleware, routes, and handles graceful shutdown.
@@ -51,6 +56,19 @@ func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.Ser
 	setupMiddleware(e)
 
 	// Create handler instance
+	h := createHandler()
+
+	// Setup routes with handler instance
+	setupRoutes(e, gwMux)
+
+	// Setup handlers
+	setupHandlers(e, h)
+
+	// Start server
+	startServer(ctx, e, host, port)
+}
+
+func createHandler() *handler.Handler {
 	client := httpclient.NewClient(httpclient.ClientOptions{
 		BaseURL: &url.URL{
 			Scheme: "https",
@@ -59,16 +77,19 @@ func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.Ser
 		},
 		InsecureSkipVerify: false,
 	})
-	h := handler.NewHandler(client)
 
-	// Setup routes with handler instance
-	setupRoutes(e, gwMux, h)
+	metrics := registerMetrics()
 
-	// Setup handlers
-	setupHandlers(e)
+	return handler.NewHandler(client, metrics)
+}
 
-	// Start server
-	startServer(ctx, e, host, port)
+func registerMetrics() *handler.Metrics {
+	metrics := &handler.Metrics{
+		HelloCounter: metrics.NewCounterVec("hello_counter_http", []string{"hello"}, ""),
+		HelloGauge:   metrics.NewGaugeVec("hello_gauge_http", []string{"hello"}, ""),
+	}
+
+	return metrics
 }
 
 // setupMiddleware configures all middleware for the server
@@ -92,7 +113,7 @@ func setupMiddleware(e *echo.Echo) {
 }
 
 // setupRoutes configures all routes for the server
-func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux, h *handler.Handler) {
+func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
 	e.GET("/metrics", echoprometheus.NewHandler())
 
 	// Configure Swagger UI only when gRPC gateway is enabled
@@ -119,18 +140,7 @@ func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux, h *handler.Handler) {
 }
 
 // setupHandlers initializes and configures all handlers
-func setupHandlers(e *echo.Echo) {
-	client := httpclient.NewClient(httpclient.ClientOptions{
-		BaseURL: &url.URL{
-			Scheme: "https",
-			Host:   "hacker-news.firebaseio.com",
-			Path:   "v0/",
-		},
-		InsecureSkipVerify: false,
-	})
-
-	h := handler.NewHandler(client)
-
+func setupHandlers(e *echo.Echo, h *handler.Handler) {
 	e.GET("/", h.Hello)
 	e.GET("/withparam", h.HelloWithParam)
 }

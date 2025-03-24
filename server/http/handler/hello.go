@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-
-	"go-template/pkg/metrics"
 )
 
 // @Summary      hello world
@@ -13,9 +11,10 @@ import (
 // @Tags         accounts
 // @Router       / [get]
 func (h *Handler) Hello(c echo.Context) error {
-	metrics.OpsProcessed.Inc()
 	// tracer.TestTrace(c.Request().Context())
 
+	h.Metrics.HelloCounter.WithLabelValues("test").Inc()
+	h.Metrics.HelloGauge.WithLabelValues("test").Set(1)
 	return c.String(http.StatusOK, "Hello, World!")
 }
 
@@ -27,7 +26,6 @@ func (h *Handler) Hello(c echo.Context) error {
 func (h *Handler) HelloWithParam(c echo.Context) error {
 	name := c.QueryParam("name")
 
-	metrics.OpsProcessed.Inc()
 	// TestTrace(c.Request().Context())
 
 	return c.String(http.StatusOK, name)

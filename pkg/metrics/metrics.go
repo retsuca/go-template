@@ -6,46 +6,30 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-var (
-	OpsProcessed = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		// Subsystem: "Subsystem",
-		// Namespace: "Namespace",
-		Help: "The total number of processed events",
-	})
+func NewCounterVec(metricName string, labels []string, help string) *prometheus.CounterVec {
+	return promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: metricName,
+		Help: help,
+	}, labels)
+}
 
-	gauge = promauto.NewGauge(
-		prometheus.GaugeOpts{
-			Namespace: "golang",
-			Name:      "my_gauge",
-			Help:      "This is my gauge",
-		})
+func NewGaugeVec(metricName string, labels []string, help string) *prometheus.GaugeVec {
+	return promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: metricName,
+		Help: help,
+	}, labels)
+}
 
-	histogram = promauto.NewHistogram(
-		prometheus.HistogramOpts{
-			Namespace: "golang",
-			Name:      "my_histogram",
-			Help:      "This is my histogram",
-		})
+func NewHistogramVec(metricName string, labels []string, help string) *prometheus.HistogramVec {
+	return promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: metricName,
+		Help: help,
+	}, labels)
+}
 
-	summary = promauto.NewSummary(
-		prometheus.SummaryOpts{
-			Namespace: "golang",
-			Name:      "my_summary",
-			Help:      "This is my summary",
-		})
-)
-
-//nolint:all // placeholder
-// func init() {
-// 	opsProcessed.Inc()
-// 	gauge.Set(1)
-// 	histogram.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(1)
-// 	summary.Observe(4)
-// }
+func NewSummaryVec(metricName string, labels []string, help string) *prometheus.SummaryVec {
+	return promauto.NewSummaryVec(prometheus.SummaryOpts{
+		Name: metricName,
+		Help: help,
+	}, labels)
+}

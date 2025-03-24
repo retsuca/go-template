@@ -12,6 +12,7 @@ import (
 
 	_ "go-template/docs"
 	"go-template/pkg/logger"
+	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
 	"go-template/server/grpc/handler"
 	httpServer "go-template/server/http"
@@ -35,6 +36,7 @@ type Server struct {
 	config       *Config
 	shutdownChan chan os.Signal
 	tp           *tracer.TracerProvider
+	Metrics      *handler.Metrics
 }
 
 // Config holds the server configuration parameters
@@ -45,7 +47,7 @@ type Config struct {
 }
 
 // NewServer creates a new Server instance with the given configuration
-func NewServer(cfg *Config) *Server {
+func NewServer(cfg *Config, metrics *handler.Metrics) *Server {
 	if cfg == nil {
 		return nil
 	}
@@ -53,6 +55,7 @@ func NewServer(cfg *Config) *Server {
 	return &Server{
 		config:       cfg,
 		shutdownChan: make(chan os.Signal, 1),
+		Metrics:      metrics,
 	}
 }
 
@@ -146,7 +149,8 @@ func (s *Server) initGRPCServer() error {
 	)
 
 	// Register services
-	pbName.RegisterGreeterServiceServer(s.grpcServer, &handler.HelloServer{})
+	helloServer := handler.NewHelloServer(s.Metrics)
+	pbName.RegisterGreeterServiceServer(s.grpcServer, helloServer)
 
 	// Register health check service
 	healthServer := health.NewServer()
@@ -219,8 +223,19 @@ func CreateGRPCServer(ctx context.Context, host, grpcPort, httpPort string) {
 		HTTPPort: httpPort,
 	}
 
-	server := NewServer(cfg)
+	metrics := registerMetrics()
+
+	server := NewServer(cfg, metrics)
 	if err := server.Start(ctx); err != nil {
 		logger.Fatal("Server error", zap.Error(err))
 	}
+}
+
+func registerMetrics() *handler.Metrics {
+	metrics := &handler.Metrics{
+		HelloCounter: metrics.NewCounterVec("hello_counter_grpc", []string{"hello"}, ""),
+		HelloGauge:   metrics.NewGaugeVec("hello_gauge_grpc", []string{"hello"}, ""),
+	}
+
+	return metrics
 }
