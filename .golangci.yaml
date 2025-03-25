@@ -1,77 +1,20 @@
-linters-settings:
-  funlen:
-    lines: 100
-    statements: 50
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: go-template
-  govet:
-    enable-all: true
-    disable:
-    - fieldalignment
-  misspell:
-    locale: US
-  nolintlint:
-    allow-unused: false # report any unused nolint directives
-    require-explanation: true # require an explanation for nolint directives
-    require-specific: false # require nolint directives to be specific about which linter is being skipped
-  revive:
-    confidence: 0
-
+version: "2"
 linters:
-  disable-all: true
+  default: fast
+formatters:
   enable:
-    - asasalint
-    - bodyclose
-    - canonicalheader
-    - copyloopvar
-    - dogsled
-    - dupl
-    - dupword
-    - err113
-    - errcheck
-    - errorlint
-    - exptostd
-    - fatcontext
-    - funlen
-    - ginkgolinter
-    - gocritic
-    - goconst
-    - gocyclo
-    - goheader
     - goimports
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
-    - iface
-    - importas
-    - ineffassign
-    - intrange
-    - mirror
-    - misspell
-    - mnd
-    - nakedret
-    - noctx
-    - nolintlint
-    - perfsprint
-    - protogetter
-    - revive
-    - rowserrcheck
-    - sqlclosecheck
-    - staticcheck
-    - stylecheck
-    - tagalign
-    - testifylint
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - usestdlibvars
-    - usetesting
-    - whitespace
+    - gofmt
+    - gofumpt
+    - gci
 
-issues:
-  exclude:
-    - EXC0001
+  settings:
+    goimports:
+      local-prefixes:
+        - go-template
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

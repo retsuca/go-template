@@ -102,33 +102,35 @@ func TestClient_Do(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create test server
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// Verify request method
-				assert.Equal(t, tt.method, r.Method)
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					// Verify request method
+					assert.Equal(t, tt.method, r.Method)
 
-				// Verify query parameters if provided
-				if tt.args != nil {
-					query := r.URL.Query()
-					for key, value := range tt.args {
-						assert.Equal(t, value, query.Get(key))
+					// Verify query parameters if provided
+					if tt.args != nil {
+						query := r.URL.Query()
+						for key, value := range tt.args {
+							assert.Equal(t, value, query.Get(key))
+						}
 					}
-				}
 
-				// Verify request body if provided
-				if tt.body != nil {
-					var receivedBody map[string]string
-					err := json.NewDecoder(r.Body).Decode(&receivedBody)
-					require.NoError(t, err)
-					assert.Equal(t, tt.body, receivedBody)
-				}
+					// Verify request body if provided
+					if tt.body != nil {
+						var receivedBody map[string]string
+						err := json.NewDecoder(r.Body).Decode(&receivedBody)
+						require.NoError(t, err)
+						assert.Equal(t, tt.body, receivedBody)
+					}
 
-				// Send response
-				w.WriteHeader(tt.serverStatus)
+					// Send response
+					w.WriteHeader(tt.serverStatus)
 
-				if tt.serverResponse != nil {
-					json.NewEncoder(w).Encode(tt.serverResponse)
-				}
-			}))
+					if tt.serverResponse != nil {
+						json.NewEncoder(w).Encode(tt.serverResponse)
+					}
+				}),
+			)
 			defer server.Close()
 
 			// Parse server URL

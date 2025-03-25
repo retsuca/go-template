@@ -25,4 +25,3 @@ func NewHandler(client Client, metrics *Metrics) *Handler {
 		Metrics:    metrics,
 	}
 }
-

@@ -10,16 +10,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "go-template/docs"
 	"go-template/pkg/logger"
 	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
+	pbName "go-template/proto/gen/go/helloservice/v1/name"
 	"go-template/server/grpc/handler"
 	httpServer "go-template/server/http"
-
-	pbName "go-template/proto/gen/go/helloservice/v1/name"
-
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -30,7 +28,7 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-// Server represents a gRPC server instance with its configuration and shutdown channel
+// Server represents a gRPC server instance with its configuration and shutdown channel.
 type Server struct {
 	grpcServer   *grpc.Server
 	config       *Config
@@ -39,14 +37,14 @@ type Server struct {
 	Metrics      *handler.Metrics
 }
 
-// Config holds the server configuration parameters
+// Config holds the server configuration parameters.
 type Config struct {
 	Host     string // Host address to bind to
 	GRPCPort string // Port for gRPC server
 	HTTPPort string // Port for HTTP gateway server
 }
 
-// NewServer creates a new Server instance with the given configuration
+// NewServer creates a new Server instance with the given configuration.
 func NewServer(cfg *Config, metrics *handler.Metrics) *Server {
 	if cfg == nil {
 		return nil
@@ -59,7 +57,7 @@ func NewServer(cfg *Config, metrics *handler.Metrics) *Server {
 	}
 }
 
-// Start initializes and starts both GRPC and HTTP servers
+// Start initializes and starts both GRPC and HTTP servers.
 func (s *Server) Start(ctx context.Context) error {
 	logger.Info("Initializing server",
 		zap.String("host", s.config.Host),
@@ -71,6 +69,7 @@ func (s *Server) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize tracer: %w", err)
 	}
+
 	s.tp = tp
 
 	// Setup signal handling
@@ -96,6 +95,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// Start HTTP server using the existing implementation with gateway mux
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
 		httpServer.CreateHTPPServer(ctx, s.config.Host, s.config.HTTPPort, gwmux)
@@ -114,10 +114,11 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	wg.Wait()
+
 	return nil
 }
 
-// setupGRPCGateway initializes and configures the gRPC-Gateway
+// setupGRPCGateway initializes and configures the gRPC-Gateway.
 func (s *Server) setupGRPCGateway(ctx context.Context) (*runtime.ServeMux, error) {
 	gwmux := runtime.NewServeMux()
 
@@ -140,7 +141,7 @@ func (s *Server) setupGRPCGateway(ctx context.Context) (*runtime.ServeMux, error
 	return gwmux, nil
 }
 
-// initGRPCServer initializes the gRPC server and registers services
+// initGRPCServer initializes the gRPC server and registers services.
 func (s *Server) initGRPCServer() error {
 	// Create gRPC server with tracing instrumentation
 	otelHandler := otelgrpc.NewServerHandler()
@@ -161,22 +162,28 @@ func (s *Server) initGRPCServer() error {
 
 	addr := net.JoinHostPort(s.config.Host, s.config.GRPCPort)
 	logger.Info("gRPC server initialized", zap.String("address", addr))
+
 	return nil
 }
 
-// startGRPCServer starts the gRPC server in a goroutine
+// startGRPCServer starts the gRPC server in a goroutine.
 func (s *Server) startGRPCServer(wg *sync.WaitGroup, errChan chan<- error) {
 	wg.Add(1)
+
 	go func() {
 		defer wg.Done()
+
 		addr := net.JoinHostPort(s.config.Host, s.config.GRPCPort)
 		lis, err := net.Listen("tcp", addr)
 		if err != nil {
 			logger.Error("Failed to listen on gRPC port", zap.Error(err), zap.String("address", addr))
 			errChan <- fmt.Errorf("failed to listen on gRPC port: %w", err)
+
 			return
 		}
+
 		logger.Info("Starting gRPC server", zap.String("address", addr))
+
 		if err := s.grpcServer.Serve(lis); err != nil {
 			logger.Error("gRPC server error", zap.Error(err))
 			errChan <- fmt.Errorf("gRPC server error: %w", err)
@@ -184,7 +191,7 @@ func (s *Server) startGRPCServer(wg *sync.WaitGroup, errChan chan<- error) {
 	}()
 }
 
-// gracefulShutdown handles graceful shutdown of the server
+// gracefulShutdown handles graceful shutdown of the server.
 func (s *Server) gracefulShutdown(ctx context.Context) {
 	shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -198,7 +205,9 @@ func (s *Server) gracefulShutdown(ctx context.Context) {
 
 	// Shutdown gRPC server
 	logger.Info("Shutting down gRPC server")
+
 	stopped := make(chan struct{})
+
 	go func() {
 		s.grpcServer.GracefulStop()
 		close(stopped)
@@ -215,7 +224,7 @@ func (s *Server) gracefulShutdown(ctx context.Context) {
 	logger.Info("Servers shutdown complete")
 }
 
-// CreateGRPCServer creates and starts the gRPC and HTTP servers with the given configuration
+// CreateGRPCServer creates and starts the gRPC and HTTP servers with the given configuration.
 func CreateGRPCServer(ctx context.Context, host, grpcPort, httpPort string) {
 	cfg := &Config{
 		Host:     host,

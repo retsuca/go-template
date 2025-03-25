@@ -1,9 +1,8 @@
 package handler
 
 import (
-	pbName "go-template/proto/gen/go/helloservice/v1/name"
-
 	"github.com/prometheus/client_golang/prometheus"
+	pbName "go-template/proto/gen/go/helloservice/v1/name"
 )
 
 type Metrics struct {

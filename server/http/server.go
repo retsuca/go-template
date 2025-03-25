@@ -10,24 +10,22 @@ import (
 	"strings"
 	"time"
 
-	_ "go-template/docs"
-	swagger "go-template/proto/gen/swagger"
-
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware" // echo-swagger middleware
 	echoSwagger "github.com/swaggo/echo-swagger"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
-	"go.uber.org/zap"
-
+	_ "go-template/docs"
 	httpclient "go-template/internal/clients/httpClient"
 	"go-template/internal/config"
 	logger "go-template/pkg/logger"
 	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
+	swagger "go-template/proto/gen/swagger"
 	"go-template/server/http/handler"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -42,6 +40,7 @@ func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.Ser
 	if err != nil {
 		logger.Fatal("Failed to initialize tracer", zap.Error(err))
 	}
+
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
 			logger.Error("Error shutting down tracer provider", zap.Error(err))
@@ -92,7 +91,7 @@ func registerMetrics() *handler.Metrics {
 	return metrics
 }
 
-// setupMiddleware configures all middleware for the server
+// setupMiddleware configures all middleware for the server.
 func setupMiddleware(e *echo.Echo) {
 	appName := config.Get(config.APP_NAME)
 	metricName := strings.ReplaceAll(appName, "-", "_")
@@ -112,7 +111,7 @@ func setupMiddleware(e *echo.Echo) {
 	e.Use(middleware.RequestID())
 }
 
-// setupRoutes configures all routes for the server
+// setupRoutes configures all routes for the server.
 func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
 	e.GET("/metrics", echoprometheus.NewHandler())
 
@@ -139,13 +138,13 @@ func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
 	})
 }
 
-// setupHandlers initializes and configures all handlers
+// setupHandlers initializes and configures all handlers.
 func setupHandlers(e *echo.Echo, h *handler.Handler) {
 	e.GET("/", h.Hello)
 	e.GET("/withparam", h.HelloWithParam)
 }
 
-// startServer starts the HTTP server and handles graceful shutdown
+// startServer starts the HTTP server and handles graceful shutdown.
 func startServer(ctx context.Context, e *echo.Echo, host, port string) {
 	// Create server context with cancellation
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)

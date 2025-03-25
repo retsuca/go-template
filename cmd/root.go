@@ -8,9 +8,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"go.uber.org/zap"
-
 	"go-template/pkg/logger"
+	"go.uber.org/zap"
 )
 
 // rootCmd represents the base command when called without any subcommands.

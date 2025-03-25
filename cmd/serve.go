@@ -8,21 +8,20 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
-
 	"go-template/internal/config"
 	"go-template/pkg/logger"
 	serverGRPC "go-template/server/grpc"
 	serverHTTP "go-template/server/http"
 )
 
-// serveCmd represents the base serve command
+// serveCmd represents the base serve command.
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start HTTP or gRPC server",
 	Long:  `Serve command allows you to start either an HTTP API server or a gRPC server.`,
 }
 
-// serveHTTPCmd represents the HTTP server command
+// serveHTTPCmd represents the HTTP server command.
 var serveHTTPCmd = &cobra.Command{
 	Use:   "http",
 	Short: "Start the HTTP API Server",
@@ -32,7 +31,7 @@ var serveHTTPCmd = &cobra.Command{
 	},
 }
 
-// serveHTTP initializes and starts the HTTP server
+// serveHTTP initializes and starts the HTTP server.
 func serveHTTP(ctx context.Context) {
 	defer logger.Sync() // flushes buffer, if any
 
@@ -42,7 +41,7 @@ func serveHTTP(ctx context.Context) {
 	serverHTTP.CreateHTPPServer(ctx, host, port, nil)
 }
 
-// serveGRPCCmd represents the gRPC server command
+// serveGRPCCmd represents the gRPC server command.
 var serveGRPCCmd = &cobra.Command{
 	Use:   "grpc",
 	Short: "Start the gRPC Server",
@@ -52,7 +51,7 @@ var serveGRPCCmd = &cobra.Command{
 	},
 }
 
-// serveGRPC initializes and starts the gRPC server
+// serveGRPC initializes and starts the gRPC server.
 func serveGRPC(ctx context.Context) {
 	defer logger.Sync() // flushes buffer, if any
 

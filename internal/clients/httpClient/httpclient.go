@@ -15,7 +15,6 @@ import (
 
 	"go-template/pkg/logger"
 	"go-template/pkg/tracer"
-
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
@@ -85,6 +84,7 @@ func NewClient(options ClientOptions) *Client {
 func (client Client) Do(ctx context.Context, method, path string, body any, args map[string]string) ([]byte, error) {
 	// Start a new span for the HTTP request
 	spanName := fmt.Sprintf("HTTP %s %s", method, path)
+
 	ctx, span := tracer.StartSpan(ctx, spanName,
 		attribute.String("http.method", method),
 		attribute.String("http.url", client.BaseURL.String()+path),
@@ -94,12 +94,14 @@ func (client Client) Do(ctx context.Context, method, path string, body any, args
 	request, err := client.newRequest(ctx, method, path, body, args)
 	if err != nil {
 		span.RecordError(err)
+
 		return nil, err
 	}
 
 	resp, err := client.c.Do(request)
 	if err != nil {
 		span.RecordError(err)
+
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -113,6 +115,7 @@ func (client Client) Do(ctx context.Context, method, path string, body any, args
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		span.RecordError(err)
+
 		return nil, err
 	}
 
@@ -126,6 +129,7 @@ func (client Client) newRequest(ctx context.Context, method, path string, body a
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
+
 		err := json.NewEncoder(buf).Encode(body)
 		if err != nil {
 			return nil, err
