@@ -20,13 +20,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// TracerProvider holds the tracer provider instance and shutdown function
+// TracerProvider holds the tracer provider instance and shutdown function.
 type TracerProvider struct {
 	provider *sdktrace.TracerProvider
 	tracer   oteltrace.Tracer
 }
 
-// NewTracer initializes a new tracer provider with the given service name
+// NewTracer initializes a new tracer provider with the given service name.
 func NewTracer() (*TracerProvider, error) {
 	serviceName := config.Get(config.APP_NAME)
 
@@ -73,7 +73,7 @@ func NewTracer() (*TracerProvider, error) {
 	}, nil
 }
 
-// Shutdown gracefully shuts down the tracer provider
+// Shutdown gracefully shuts down the tracer provider.
 func (tp *TracerProvider) Shutdown(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -85,18 +85,19 @@ func (tp *TracerProvider) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// Tracer returns the tracer instance
+// Tracer returns the tracer instance.
 func (tp *TracerProvider) Tracer() oteltrace.Tracer {
 	return tp.tracer
 }
 
-// createBatchSpanProcessor creates a span processor based on the environment
+// createBatchSpanProcessor creates a span processor based on the environment.
 func createBatchSpanProcessor() (sdktrace.SpanProcessor, error) {
 	if config.Get(config.ENV) == "local" {
 		exporter, err := stdout.New(stdout.WithPrettyPrint())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create stdout exporter: %w", err)
 		}
+
 		return sdktrace.NewBatchSpanProcessor(exporter), nil
 	}
 
@@ -106,6 +107,7 @@ func createBatchSpanProcessor() (sdktrace.SpanProcessor, error) {
 	}
 
 	ctx := context.Background()
+
 	conn, err := grpc.Dial(endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -124,14 +126,14 @@ func createBatchSpanProcessor() (sdktrace.SpanProcessor, error) {
 	return sdktrace.NewBatchSpanProcessor(exporter), nil
 }
 
-// StartSpan starts a new span with the given name and attributes
+// StartSpan starts a new span with the given name and attributes.
 func StartSpan(ctx context.Context, name string, attrs ...attribute.KeyValue) (context.Context, oteltrace.Span) {
 	return otel.Tracer("").Start(ctx, name,
 		oteltrace.WithAttributes(attrs...),
 	)
 }
 
-// SpanFromContext returns the current span from context
+// SpanFromContext returns the current span from context.
 func SpanFromContext(ctx context.Context) oteltrace.Span {
 	return oteltrace.SpanFromContext(ctx)
 }
