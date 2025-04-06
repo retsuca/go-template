@@ -9,6 +9,8 @@ package main
 import (
 	"go-template/cmd"
 	_ "go-template/internal/clients/httpClient"
+
+	_ "go.uber.org/automaxprocs"
 )
 
 func main() {
