@@ -8,7 +8,10 @@
 
   // golangci-lint
   "go.lintTool": "golangci-lint-v2",
-  "go.lintFlags": ["--fast-only"],
+  "go.lintFlags": [
+    "--path-mode=abs",
+    "--fast-only"
+  ],
   "go.lintOnSave": "workspace",
   "go.formatTool": "custom",
   "go.alternateTools": {
