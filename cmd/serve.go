@@ -7,9 +7,11 @@ package cmd
 import (
 	"context"
 
-	"github.com/spf13/cobra"
 	"go-template/internal/config"
 	"go-template/pkg/logger"
+
+	"github.com/spf13/cobra"
+
 	serverGRPC "go-template/server/grpc"
 	serverHTTP "go-template/server/http"
 )

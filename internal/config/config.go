@@ -8,7 +8,7 @@ import (
 	log "go.uber.org/zap"
 )
 
-//nolint:revive,stylecheck // These are env variables
+//nolint:revive // These are env variables
 const (
 	APP_NAME                    = "APP_NAME"
 	HOST                        = "HOST"

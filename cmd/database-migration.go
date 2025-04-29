@@ -8,12 +8,14 @@ import (
 	"errors"
 	"fmt"
 
+	"go-template/internal/clients/db"
+	"go-template/pkg/logger"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // Required for file-based migrations
 	"github.com/spf13/cobra"
-	"go-template/internal/clients/db"
-	"go-template/pkg/logger"
+
 	"go.uber.org/zap"
 )
 

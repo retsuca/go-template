@@ -7,8 +7,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/spf13/cobra"
 	"go-template/pkg/logger"
+
+	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 

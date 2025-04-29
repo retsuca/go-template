@@ -4,8 +4,10 @@ import (
 	"context"
 
 	"go-template/pkg/logger"
-	pbName "go-template/proto/gen/go/helloservice/v1/name"
+
 	"go.uber.org/zap"
+
+	pbName "go-template/proto/gen/go/helloservice/v1/name"
 )
 
 func (s *HelloServer) SayHello(_ context.Context, in *pbName.SayHelloRequest) (*pbName.SayHelloResponse, error) {

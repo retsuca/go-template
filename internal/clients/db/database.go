@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq" // Register postgres driver
 	"go-template/internal/config"
 	"go-template/pkg/logger"
+
+	_ "github.com/lib/pq" // Register postgres driver
+
 	"go.uber.org/zap"
 )
 

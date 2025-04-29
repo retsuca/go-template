@@ -10,14 +10,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	_ "go-template/docs"
 	"go-template/pkg/logger"
 	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
-	pbName "go-template/proto/gen/go/helloservice/v1/name"
 	"go-template/server/grpc/handler"
-	httpServer "go-template/server/http"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+
+	_ "go-template/docs"
+
+	pbName "go-template/proto/gen/go/helloservice/v1/name"
+
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -26,6 +29,8 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+
+	httpServer "go-template/server/http"
 )
 
 // Server represents a gRPC server instance with its configuration and shutdown channel.

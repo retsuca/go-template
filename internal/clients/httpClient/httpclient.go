@@ -15,6 +15,7 @@ import (
 
 	"go-template/pkg/logger"
 	"go-template/pkg/tracer"
+
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"

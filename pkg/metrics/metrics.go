@@ -1,4 +1,3 @@
-//nolint:all // placeholder
 package metrics
 
 import (

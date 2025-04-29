@@ -1,12 +1,13 @@
 version: "2"
 linters:
   default: fast
+  disable:
+    - depguard
 formatters:
   enable:
     - goimports
     - gofmt
     - gofumpt
-    - gci
   settings:
     goimports:
       local-prefixes:

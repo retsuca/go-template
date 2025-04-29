@@ -10,13 +10,9 @@ import (
 	"strings"
 	"time"
 
-	_ "go-template/docs"
-	httpclient "go-template/internal/clients/httpClient"
 	"go-template/internal/config"
-	logger "go-template/pkg/logger"
 	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
-	swagger "go-template/proto/gen/swagger"
 	"go-template/server/http/handler"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -25,6 +21,14 @@ import (
 	"github.com/labstack/echo/v4/middleware" // echo-swagger middleware
 	echoSwagger "github.com/swaggo/echo-swagger"
 	httpSwagger "github.com/swaggo/http-swagger"
+
+	_ "go-template/docs"
+	httpclient "go-template/internal/clients/httpClient"
+
+	logger "go-template/pkg/logger"
+
+	swagger "go-template/proto/gen/swagger"
+
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/zap"
 )
