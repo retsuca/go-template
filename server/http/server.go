@@ -19,10 +19,6 @@ import (
 	httpclient "go-template/internal/clients/httpClient"
 	logger "go-template/pkg/logger"
 
-	http_metrics "github.com/slok/go-http-metrics/metrics/prometheus"
-	http_metrics_middleware "github.com/slok/go-http-metrics/middleware"
-	"github.com/slok/go-http-metrics/middleware/std"
-
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -111,12 +107,6 @@ func setupMiddleware(r *chi.Mux) {
 
 	// Add CORS middleware
 	r.Use(middleware.DefaultCORS().Handler)
-
-	// Add prometheus middleware
-	mdlw := http_metrics_middleware.New(http_metrics_middleware.Config{
-		Recorder: http_metrics.NewRecorder(http_metrics.Config{}),
-	})
-	r.Use(std.HandlerProvider("", mdlw))
 }
 
 func otelReqFilter(req *http.Request) bool {

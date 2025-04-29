@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go-template/server/http/handler"
+	"go-template/server/http/middleware"
 	"go-template/server/http/types"
 
 	"github.com/go-chi/chi/v5"
@@ -70,5 +71,5 @@ func SetupRoutes(r *chi.Mux, h *handler.Handler, gwMux *runtime.ServeMux) {
 
 	// Application routes
 	r.Get("/", h.Hello)
-	r.Get("/withparam", h.HelloWithParam)
+	r.Get("/withparam", middleware.WrapMetricHandler("", h.HelloWithParam).ServeHTTP)
 }
