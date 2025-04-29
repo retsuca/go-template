@@ -14,6 +14,7 @@ type Metrics struct {
 	HelloCounter *prometheus.CounterVec
 	HelloGauge   *prometheus.GaugeVec
 }
+
 type Handler struct {
 	HTTPClient Client
 	Metrics    *Metrics

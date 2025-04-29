@@ -7,29 +7,26 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"go-template/internal/config"
 	"go-template/pkg/metrics"
 	"go-template/pkg/tracer"
 	"go-template/server/http/handler"
+	"go-template/server/http/middleware"
+	"go-template/server/http/routes"
 
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/labstack/echo-contrib/echoprometheus"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware" // echo-swagger middleware
-	echoSwagger "github.com/swaggo/echo-swagger"
-	httpSwagger "github.com/swaggo/http-swagger"
-
-	_ "go-template/docs"
 	httpclient "go-template/internal/clients/httpClient"
-
 	logger "go-template/pkg/logger"
 
-	swagger "go-template/proto/gen/swagger"
+	http_metrics "github.com/slok/go-http-metrics/metrics/prometheus"
+	http_metrics_middleware "github.com/slok/go-http-metrics/middleware"
+	"github.com/slok/go-http-metrics/middleware/std"
 
-	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
+	"github.com/go-chi/chi/v5"
+	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.uber.org/zap"
 )
 
@@ -52,24 +49,19 @@ func CreateHTPPServer(ctx context.Context, host, port string, gwMux *runtime.Ser
 		}
 	}()
 
-	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
+	r := chi.NewRouter()
 
 	// Setup middleware
-	setupMiddleware(e)
+	setupMiddleware(r)
 
 	// Create handler instance
 	h := createHandler()
 
-	// Setup routes with handler instance
-	setupRoutes(e, gwMux)
-
-	// Setup handlers
-	setupHandlers(e, h)
+	// Setup routes
+	routes.SetupRoutes(r, h, gwMux)
 
 	// Start server
-	startServer(ctx, e, host, port)
+	startServer(ctx, r, host, port)
 }
 
 func createHandler() *handler.Handler {
@@ -97,70 +89,55 @@ func registerMetrics() *handler.Metrics {
 }
 
 // setupMiddleware configures all middleware for the server.
-func setupMiddleware(e *echo.Echo) {
+func setupMiddleware(r *chi.Mux) {
 	appName := config.Get(config.APP_NAME)
-	metricName := strings.ReplaceAll(appName, "-", "_")
 
-	// Add tracing middleware first to ensure all requests are traced
-	e.Use(otelecho.Middleware(appName,
-		otelecho.WithSkipper(func(c echo.Context) bool {
-			return c.Path() == "/metrics" || c.Path() == "/health"
-		}),
-	))
+	// Add tracing middleware
+	r.Use(func(next http.Handler) http.Handler {
+		return otelhttp.NewHandler(next, appName, otelhttp.WithFilter(otelReqFilter))
+	})
 
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(echoprometheus.NewMiddleware(metricName))
+	// Add error handling middleware
+	r.Use(middleware.ErrorHandler)
+
+	// Add recover middleware
+	r.Use(middleware.Recoverer)
 
 	// Add request ID middleware
-	e.Use(middleware.RequestID())
-}
+	r.Use(chimiddleware.RequestID)
 
-// setupRoutes configures all routes for the server.
-func setupRoutes(e *echo.Echo, gwMux *runtime.ServeMux) {
-	e.GET("/metrics", echoprometheus.NewHandler())
+	// Add logger middleware
+	r.Use(chimiddleware.Logger)
 
-	// Configure Swagger UI only when gRPC gateway is enabled
-	if gwMux != nil {
-		// Serve gRPC-Gateway Swagger documentation
-		e.GET("/swagger/swagger.json", func(c echo.Context) error {
-			return c.JSONBlob(http.StatusOK, swagger.ApidocsSwaggerJson)
-		})
+	// Add CORS middleware
+	r.Use(middleware.DefaultCORS().Handler)
 
-		e.GET("/swagger/*", echo.WrapHandler(httpSwagger.Handler(
-			httpSwagger.URL("/swagger/swagger.json"), // The url pointing to API definition
-			httpSwagger.DeepLinking(true),
-			httpSwagger.DocExpansion("none"),
-			httpSwagger.DomID("swagger-ui"),
-		)))
-		e.Any("/*", echo.WrapHandler(gwMux))
-	} else {
-		e.GET("/swagger/*", echoSwagger.WrapHandler)
-	}
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "healthy"})
+	// Add prometheus middleware
+	mdlw := http_metrics_middleware.New(http_metrics_middleware.Config{
+		Recorder: http_metrics.NewRecorder(http_metrics.Config{}),
 	})
+	r.Use(std.HandlerProvider("", mdlw))
 }
 
-// setupHandlers initializes and configures all handlers.
-func setupHandlers(e *echo.Echo, h *handler.Handler) {
-	e.GET("/", h.Hello)
-	e.GET("/withparam", h.HelloWithParam)
+func otelReqFilter(req *http.Request) bool {
+	return req.URL.Path != "/metrics"
 }
 
 // startServer starts the HTTP server and handles graceful shutdown.
-func startServer(ctx context.Context, e *echo.Echo, host, port string) {
+func startServer(ctx context.Context, r *chi.Mux, host, port string) {
 	// Create server context with cancellation
 	ctx, stop := signal.NotifyContext(ctx, os.Interrupt)
 	defer stop()
 
+	server := &http.Server{
+		Addr:    host + ":" + port,
+		Handler: r,
+	}
+
 	// Start server in a goroutine
 	go func() {
-		addr := host + ":" + port
-		logger.Info("Starting HTTP server", zap.String("address", addr))
-
-		if err := e.Start(addr); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Info("Starting HTTP server", zap.String("address", server.Addr))
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatal("Fatal error in HTTP server", zap.Error(err))
 		}
 	}()
@@ -173,7 +150,7 @@ func startServer(ctx context.Context, e *echo.Echo, host, port string) {
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := e.Shutdown(shutdownCtx); err != nil {
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("Error during server shutdown", zap.Error(err))
 	}
 

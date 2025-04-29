@@ -1,26 +1,41 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
-	"github.com/labstack/echo/v4"
+	"go-template/server/http/types"
 )
 
-// @Router       / [get].
-func (h *Handler) Hello(c echo.Context) error {
-	// tracer.TestTrace(c.Request().Context())
+// @Router       / [get]
+func (h *Handler) Hello(w http.ResponseWriter, r *http.Request) {
 	h.Metrics.HelloCounter.WithLabelValues("test").Inc()
-
 	h.Metrics.HelloGauge.WithLabelValues("test").Set(1)
 
-	return c.String(http.StatusOK, "Hello, World!")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	resp := types.HelloResponse{
+		Message: "Hello, World!",
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
 
-// @Param name query string true "name".
-func (h *Handler) HelloWithParam(c echo.Context) error {
-	name := c.QueryParam("name")
+// @Param name query string true "name"
+func (h *Handler) HelloWithParam(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
 
-	// TestTrace(c.Request().Context())
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
-	return c.String(http.StatusOK, name)
+	resp := types.HelloWithParamResponse{
+		Message: name,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
